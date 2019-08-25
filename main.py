@@ -45,7 +45,8 @@ with torch.no_grad():
 # confirm we were able to predict 'henson'
 pred = predictions[0, masked_index, :].numpy()
 sort_top = pred.argsort()
-predicted_index = torch.argmax(predictions[0, masked_index, :]).item()
-predicted_token = tokenizer.convert_ids_to_tokens([predicted_index])[0]
-assert predicted_token == 'henson'
+#predicted_index = torch.argmax(predictions[0, masked_index, :]).item()
+predicted_index = sort_top[-5:]
+predicted_token = [tokenizer.convert_ids_to_tokens([idx])[0] for idx in predicted_index]
+assert predicted_token[-1] == 'henson'
 print('Predicted token is:',predicted_token)
