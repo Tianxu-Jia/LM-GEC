@@ -13,6 +13,7 @@ def forecast_token(text, masked_index, tokenizer, model):
     tokenized_text.append('SEP')
 
     synonyms = get_candidate_tokens(tokenized_text[masked_index])
+    synonyms = list(set(synonyms))
 
     # Mask a token that we will try to predict back with `BertForMaskedLM`
     tokenized_text[masked_index] = '[MASK]'

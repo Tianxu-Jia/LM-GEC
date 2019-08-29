@@ -3,10 +3,23 @@
 import numpy as np
 from pattern.en import lexeme
 from nltk.corpus import wordnet
+from nltk.stem.porter import *
+from nltk.stem import WordNetLemmatizer
 import spacy
 
 from mxnet import nd
 import gluonnlp
+
+import pickle
+
+stemmer = PorterStemmer()
+
+lemmatizer = WordNetLemmatizer()
+
+fp = open("./tools/stem-words.p", "rb")
+stem2words = pickle.load(fp)
+fp.close()
+
 
 glove_6b50d = gluonnlp.embedding.create('glove', source='glove.6B.50d')
 vocab = gluonnlp.Vocab(gluonnlp.data.Counter(glove_6b50d.idx_to_token))
@@ -25,7 +38,24 @@ def get_knn(word, k=2000):
     return vocab.to_tokens(indices[1:])
 
 def get_synomyms_token(token):
+    stem = stemmer.stem(token)
     synonyms_ = [token]
+    if stem in stem2words:
+        words = stem2words[stem]
+        keys = []
+        for it in words:
+            k = list(it.keys())
+            keys.extend(k)
+
+    synonyms_.extend(keys)
+
+    w1 = lemmatizer.lemmatize(token, 'v')
+    w2 = lemmatizer.lemmatize(token, pos="a")
+    w3 = lemmatizer.lemmatize(token)
+    w = {w1, w2, w3}
+    synonyms_.extend(list(w))
+
+    #synonyms_ = [token]
 
     for syn in wordnet.synsets(token):
         for l in syn.lemmas():
@@ -33,6 +63,7 @@ def get_synomyms_token(token):
 
     synonyms_.extend(lexeme(token))
     synonyms = np.array([elm for elm in set(synonyms_)])
+
     return synonyms
 
 def get_candidate_tokens(token):
@@ -49,6 +80,7 @@ def get_candidate_tokens(token):
 
 
 if __name__ == '__main__':
-    aa = get_candidate_tokens('people')
-    print(aa)
+    #aa = get_candidate_tokens('people')
+    bb = get_knn('took', 100)
+    print(bb)
 
