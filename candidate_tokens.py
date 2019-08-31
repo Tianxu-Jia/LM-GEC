@@ -7,6 +7,8 @@ from nltk.stem.porter import *
 from nltk.stem import WordNetLemmatizer
 import spacy
 
+from spacy.lang.en.stop_words import STOP_WORDS
+
 from mxnet import nd
 import gluonnlp
 
@@ -42,12 +44,7 @@ def get_synomyms_token(token):
     synonyms_ = [token]
     if stem in stem2words:
         words = stem2words[stem]
-        keys = []
-        for it in words:
-            k = list(it.keys())
-            keys.extend(k)
-
-    synonyms_.extend(keys)
+        synonyms_.extend(words)
 
     w1 = lemmatizer.lemmatize(token, 'v')
     w2 = lemmatizer.lemmatize(token, pos="a")
@@ -67,7 +64,8 @@ def get_synomyms_token(token):
     return synonyms
 
 def get_candidate_tokens(token):
-    spacy_stopwords = list(spacy.lang.en.stop_words.STOP_WORDS)
+    #spacy_stopwords = list(spacy.lang.en.stop_words.STOP_WORDS)
+    spacy_stopwords = list(STOP_WORDS)
     if token in spacy_stopwords:
         return spacy_stopwords
 
@@ -80,7 +78,7 @@ def get_candidate_tokens(token):
 
 
 if __name__ == '__main__':
-    #aa = get_candidate_tokens('people')
+    aa = get_candidate_tokens('people')
     bb = get_knn('took', 100)
     print(bb)
 

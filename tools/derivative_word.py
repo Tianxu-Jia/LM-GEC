@@ -37,13 +37,13 @@ for ww in vocab.idx_to_token:
         root = stemmer.stem(ww)
         if ww != root:
             print(ww)
-            polarity = int(Word(ww, language="en").polarity)
-            ttt = {ww: polarity}
+            #polarity = int(Word(ww, language="en").polarity)
+            #ttt = {ww: polarity}
             if root not in roots_dict:
                 roots_dict[root] = []
-                roots_dict[root].append(ttt)
+                roots_dict[root].append(ww)
             else:
-                roots_dict[root].append(ttt)
+                roots_dict[root].append(ww)
 
         debug = 1
 fp = open("stem-words.p", "wb")

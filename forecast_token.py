@@ -2,6 +2,7 @@
 from candidate_tokens import get_candidate_tokens
 import torch
 import numpy as np
+from polyglot.text import Word
 import spacy
 nlp = spacy.load('en_core_web_sm')
 
@@ -10,10 +11,18 @@ def forecast_token(text, masked_index, tokenizer, model):
     tokenized_text = ['[CLS]']
     doc = nlp(text)
     tokenized_text.extend([token.text for token in doc])
-    tokenized_text.append('SEP')
+    tokenized_text.append('[SEP]')
 
-    synonyms = get_candidate_tokens(tokenized_text[masked_index])
-    synonyms = list(set(synonyms))
+    synonyms_ = get_candidate_tokens(tokenized_text[masked_index])
+    synonyms_ = list(set(synonyms_))
+
+    masked_token = tokenized_text[masked_index]
+    token_polarity = int(Word(masked_token, language="en").polarity) #######
+
+    synonyms = []
+    for elem in synonyms_:
+        if int(Word(elem, language="en").polarity) == token_polarity:
+            synonyms.append(elem)
 
     # Mask a token that we will try to predict back with `BertForMaskedLM`
     tokenized_text[masked_index] = '[MASK]'
@@ -33,12 +42,16 @@ def forecast_token(text, masked_index, tokenizer, model):
     token_idxs = [tokenizer.convert_tokens_to_ids([word])[0] for word in synonyms]
     preds = np.array([predictions[0, masked_index, idx] for idx in token_idxs])
     sort_top = preds.argsort()
-    predicted_index = token_idxs[sort_top[-1]]
-    predicted_token = synonyms[sort_top[-1]]
-    return predicted_token
+    #predicted_index = token_idxs[sort_top[-1]]
+    candiditate_tokens = [synonyms[sort_top[-1]], synonyms[sort_top[-2]]]
+    if masked_token in candiditate_tokens:  # if the probability of masked token within top two, then think the masked token is correct.
+        predicted_token, softmax_prob = masked_token, 100
+    else:
+        predicted_token, softmax_prob = synonyms[sort_top[-1]], preds[sort_top[-1]]
 
-    # confirm we were able to predict 'henson'
-    #predicted_index = torch.argmax(predictions[0, masked_index]).item()
-    #predicted_token = tokenizer.convert_ids_to_tokens([predicted_index])[0]
+    # don't change the token if the predicted token is same at the original token
+    # without consider the upper/lower case
+    if masked_token.lower() == predicted_token.lower():
+        predicted_token = masked_token
+    return predicted_token, softmax_prob
 
-    #return predicted_token
