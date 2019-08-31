@@ -44,6 +44,11 @@ def forecast_token(text, masked_index, tokenizer, model):
     sort_top = preds.argsort()
     #predicted_index = token_idxs[sort_top[-1]]
     candiditate_tokens = [synonyms[sort_top[-1]], synonyms[sort_top[-2]]]
+    candiditate_tokens = []
+    for nn in np.arange(len(preds)):
+        if abs(preds[nn]-preds[sort_top[-1]])<0.0001:
+            candiditate_tokens.append(synonyms[nn])
+
     if masked_token in candiditate_tokens:  # if the probability of masked token within top two, then think the masked token is correct.
         predicted_token, softmax_prob = masked_token, 100
     else:

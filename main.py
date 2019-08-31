@@ -38,12 +38,15 @@ text = "I saws the show 's advertisement hanging up of a wall in London where I 
        "I convinced them to go there with me because I had heard good references about your Company and , " \
        "above all , about the main star , Danny Brook ."
 doc = nlp(text)
-tokens = [token.text for token in doc]
-for masked_index in np.arange(len(tokens))+1:
-    if masked_index>1 and tokens[masked_index-1].istitle():  # deflautly think the word with first letter is upppercase is
-        f_token, softmax_prob = tokens[masked_index-1], 100
-    else:
-        f_token, softmax_prob = forecast_token(text, masked_index, tokenizer, model)
-    print('Predicted token is:  ', f_token, '       softmax_prob:   ', softmax_prob)
+sentences = [sent.text for sent in doc.sents]
+for sent in sentences:
+    sent_doc = nlp(sent)
+    tokens = [token.text for token in sent_doc]
+    for masked_index in np.arange(len(sent_doc))+1:
+        if masked_index>1 and tokens[masked_index-1].istitle():  # deflautly think the word with first letter is upppercase is
+            f_token, softmax_prob = tokens[masked_index-1], 100
+        else:
+            f_token, softmax_prob = forecast_token(sent, masked_index, tokenizer, model)
+        print('Predicted token is:  ', f_token, '       softmax_prob:   ', softmax_prob)
 
 debug = 1

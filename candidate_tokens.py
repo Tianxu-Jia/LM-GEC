@@ -13,6 +13,11 @@ from mxnet import nd
 import gluonnlp
 
 import pickle
+import enchant
+from nltk.corpus import words
+#import nltk
+#nltk.download()
+EnglishDict = enchant.Dict("en_US")
 
 stemmer = PorterStemmer()
 
@@ -69,7 +74,13 @@ def get_candidate_tokens(token):
     if token in spacy_stopwords:
         return spacy_stopwords
 
-    result = get_knn(token, 20)
+    result_ = get_knn(token, 20)
+    result = []
+    for ww in result_:
+        # check the string from KNN is in English dictionary
+        if EnglishDict.check(ww) or ww in words.words():
+            result.append(ww)
+
     synomyms = get_synomyms_token(token)
     result.extend(synomyms)
     #result.append('reviewing')
