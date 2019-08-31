@@ -17,7 +17,6 @@ translator = Translator()
 aa = translator.translate('程开甲，男，汉族，中共党员、九三学社社员，'
                           '1918年8月生，2018年11月去世，江苏吴江人，'
                           '原国防科工委科技委常任委员，中国科学院院士。')
-#print(aa.text)
 
 nlp = spacy.load('en_core_web_lg')
 
