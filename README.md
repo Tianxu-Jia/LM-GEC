@@ -2,12 +2,11 @@
 Build a English grammatical error correction system based on language model.
 
 ## Requirement
-python 3.4+
-pytorch 1.2
-pytorch-transformer
-Texat-pytorch
-numpy
-pandas
+* python 3.4+
+* pytorch 1.2
+* pytorch-transformer
+* Texat-pytorch
+* numpy
 
 
 ## TODO
