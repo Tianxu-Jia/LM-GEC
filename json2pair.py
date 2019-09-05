@@ -11,7 +11,8 @@ from nltk.stem.lancaster import LancasterStemmer
 import re
 from string import punctuation
 from bisect import bisect
-import pickle
+import argparse
+
 
 
 # Punctuation normalisation dictionary
@@ -346,46 +347,71 @@ def convertCharToTok(start, end, all_starts, all_ends):
 		# Keep the new character spans as well
 		return [all_starts.index(start), all_ends.index(end)+1, start, end]
 
+#########################################
+parser = argparse.ArgumentParser()
+parser.add_argument('--input_json', type=str, default="data/fce/json/fce-dev.json",
+					help="input json file for GEC.")
+args = parser.parse_args()
 
-orig_sents = []
-correct_sents = []
-iii = 1
-with open('data/fce/json/fce.train.json') as data:
-    for line in data:
-        line = json.loads(line)
-        print('iii: ', iii)
-        iii += 1
-        # Normalise certain punctuation in the text
-        text = line["text"].translate(norm_dict)
 
-        # Store the sentences and edits for all annotators here
-        #coder_dict = {}
-        # Loop through the annotator ids and their edits
-        # Loop through the annotator ids and their edits
-        for coder, edits in line["edits"]:
-            # Add the coder to the coder_dict if needed
-            #if coder not in coder_dict: coder_dict[coder] = []
-            # Split the essay into paragraphs and update and normalise the char edits
-            para_info = getParas(text, edits, norm_dict)
-            # Loop through the paragraphs and edits
-            for orig_para, para_edits in para_info:
-                # Remove unnecessary whitespace from para and update char edits
-                orig_para, para_edits = cleanPara(orig_para, para_edits)
-                if not orig_para: continue  # Ignore empty paras
-                # Annotate orig_para with spacy
-                orig_para = nlp(orig_para)
-                # Convert character edits to token edits
-                para_edits = getTokenEdits(orig_para, para_edits, nlp)
-                # Split the paragraph into sentences and update tok edits
-                sents = getSents(orig_para, para_edits)
-                orig_sents.extend([sent['orig'] for sent in sents])
-                correct_sents.extend([sent['cor'] for sent in sents])
-                # Save the sents in the coder_dict
-                #coder_dict[coder].extend(sents)
+def main():
+	orig_sents = []
+	correct_sents = []
+	iii = 1
+	with open(args.input_json) as data:
+		for line in data:
+			line = json.loads(line)
+			print('iii: ', iii)
+			iii += 1
+			# Normalise certain punctuation in the text
+			text = line["text"].translate(norm_dict)
 
-result = [orig_sents, correct_sents]
-with open("fce-train.p", "wb") as fp:
-    pickle.dump(result, fp)
+			# Store the sentences and edits for all annotators here
+			#coder_dict = {}
+			# Loop through the annotator ids and their edits
+			# Loop through the annotator ids and their edits
+			for coder, edits in line["edits"]:
+				# Add the coder to the coder_dict if needed
+				#if coder not in coder_dict: coder_dict[coder] = []
+				# Split the essay into paragraphs and update and normalise the char edits
+				para_info = getParas(text, edits, norm_dict)
+				# Loop through the paragraphs and edits
+				for orig_para, para_edits in para_info:
+					# Remove unnecessary whitespace from para and update char edits
+					orig_para, para_edits = cleanPara(orig_para, para_edits)
+					if not orig_para: continue  # Ignore empty paras
+					# Annotate orig_para with spacy
+					orig_para = nlp(orig_para)
+					# Convert character edits to token edits
+					para_edits = getTokenEdits(orig_para, para_edits, nlp)
+					# Split the paragraph into sentences and update tok edits
+					sents = getSents(orig_para, para_edits)
+					orig_sents.extend([sent['orig'] for sent in sents])
+					correct_sents.extend([sent['cor'] for sent in sents])
+					# Save the sents in the coder_dict
+					#coder_dict[coder].extend(sents)
+
+	orig_file_name = args.input_json.split('.')[0] + '.orig'
+	cor_file_name =  args.input_json.split('.')[0] + '.corct'
+
+	with open(orig_file_name, "w") as fp:
+		for line in orig_sents:
+			fp.write(' '.join(line))
+			fp.write("\n")
+
+	with open(cor_file_name, "w") as fp:
+		for line in correct_sents:
+			fp.write(' '.join(line))
+			fp.write("\n")
+
+#result = [orig_sents, correct_sents]
+#with open("fce-train.p", "wb") as fp:
+#    pickle.dump(result, fp)
+
+if __name__ == '__main__':
+	main()
+
+
 
 
 
